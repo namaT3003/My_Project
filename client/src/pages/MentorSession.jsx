@@ -1,4 +1,70 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
+
+const getMentorReply = (message) => {
+  const lowerMessage = message.toLowerCase();
+
+  if (lowerMessage.includes('binary search')) {
+    return `Binary search is one of the most powerful DSA techniques for sorted lists.
+
+• Start with low = 0 and high = length - 1.
+• Find mid = Math.floor((low + high) / 2).
+• Compare target with array[mid].
+• Move left if target is smaller, right if it is larger.
+• Repeat until low > high or the item is found.
+
+This approach runs in O(log n), so it is ideal for fast lookup in large datasets.`;
+  }
+
+  if (lowerMessage.includes('career')) {
+    return `For a strong tech career, focus on skills, projects, and networking.
+
+• Build a portfolio that shows real work.
+• Practice with data structures and system design.
+• Learn how to explain your decisions clearly.
+• Connect with mentors and recruiters.
+
+Keep refining your story and keep learning consistently.`;
+  }
+
+  if (lowerMessage.includes('exam')) {
+    return `A great exam strategy combines understanding and practice.
+
+• Identify high-priority topics first.
+• Use active recall and spaced repetition.
+• Practice past questions under timed conditions.
+• Review mistakes and keep your schedule steady.
+
+Stay calm, sleep well, and trust your preparation.`;
+  }
+
+  if (lowerMessage.includes('plan')) {
+    return `Let's build a study plan for your next milestone.
+
+• Week 1: Review key concepts and set strong foundations.
+• Week 2: Practice problems and real examples.
+• Week 3: Simulate timed sessions and review weak spots.
+• Week 4: Refine and repeat the highest-impact topics.
+
+This gives you structure while keeping the plan flexible as you improve.`;
+  }
+
+  return `I am your AI mentor and I can help you with learning, career direction, exam preparation, and study planning.
+
+Ask me a specific question about a topic, a career goal, an exam strategy, or a study plan and I will guide you step by step.`;
+};
+
+const speakResponse = (text) => {
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'en-US';
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  window.speechSynthesis.speak(utterance);
+};
 
 export default function MentorSession() {
   const [sessionGoal, setSessionGoal] = useState('');
@@ -6,263 +72,147 @@ export default function MentorSession() {
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (!message.trim()) return;
 
     setLoading(true);
     setResponse('');
+    const prompt = message.trim();
+    setMessage('');
 
-    // Simulate AI thinking delay
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+
     setTimeout(() => {
-      let aiResponse = '';
-
-      const lowerMessage = message.toLowerCase();
-
-      if (lowerMessage.includes('binary search')) {
-        aiResponse = `Great question about binary search! Let me break this down for you:
-
-**Binary Search Fundamentals:**
-- Works on sorted arrays only
-- Time complexity: O(log n)
-- Space complexity: O(1)
-
-**Key Implementation Steps:**
-1. Set low = 0, high = array.length - 1
-2. While low <= high:
-   - Calculate mid = low + (high - low) / 2
-   - If target == array[mid], return mid
-   - If target < array[mid], high = mid - 1
-   - Else low = mid + 1
-3. Return -1 if not found
-
-**Common Pitfalls:**
-- Forgetting to handle integer overflow in mid calculation
-- Not ensuring the array is sorted first
-- Off-by-one errors in boundary conditions
-
-Try implementing this and let me know if you need help with a specific case!`;
-      } else if (lowerMessage.includes('career')) {
-        aiResponse = `Excellent that you're thinking about your career path! Here's some tailored guidance:
-
-**Current Market Trends:**
-- Tech skills are in high demand across industries
-- AI/ML, cybersecurity, and cloud computing are growing rapidly
-- Remote work has become the new normal
-
-**Your Career Action Plan:**
-1. **Skill Assessment:** Identify your strengths and interests
-2. **Market Research:** Study job descriptions in your target roles
-3. **Skill Gap Analysis:** Determine what you need to learn
-4. **Learning Path:** Create a 3-6 month roadmap
-5. **Networking:** Connect with experienced professionals in your field
-6. **Projects:** Build a portfolio showcasing your skills
-
-**Next Steps:**
-- Update your LinkedIn profile
-- Start contributing to open-source projects
-- Consider certifications in high-demand areas
-- Network on platforms like LinkedIn and GitHub
-
-What specific career direction interests you most?`;
-      } else if (lowerMessage.includes('exam')) {
-        aiResponse = `Smart thinking about exam preparation! Let's optimize your strategy:
-
-**Exam Preparation Framework:**
-
-**Phase 1: Foundation Building (Weeks 1-2)**
-- Review all syllabus topics
-- Create concept maps for each subject
-- Identify weak areas through self-assessment
-
-**Phase 2: Intensive Study (Weeks 3-4)**
-- Focus on high-weightage topics first
-- Practice with previous year questions
-- Use active recall techniques
-- Take short breaks (Pomodoro: 25min study + 5min break)
-
-**Phase 3: Revision & Testing (Final Week)**
-- Quick revision of all topics
-- Full-length mock tests under exam conditions
-- Analyze mistakes and learn from them
-- Focus on time management
-
-**Pro Tips:**
-- Start early - cramming doesn't work
-- Health first: 7-8 hours sleep, regular exercise
-- Stay hydrated and eat brain-boosting foods
-- Practice mindfulness to reduce anxiety
-
-**During Exam:**
-- Read questions carefully
-- Manage time per section
-- Don't panic if stuck - move on and return later
-
-You've got this! Stay consistent and believe in your preparation.`;
-      } else {
-        aiResponse = `I'm here to help you with your learning journey! As your AI mentor, I can assist with:
-
-**Academic Support:**
-- Subject explanations and concept clarification
-- Problem-solving strategies
-- Study techniques and memory methods
-
-**Career Guidance:**
-- Career path exploration
-- Skill development planning
-- Industry insights and trends
-
-**Exam Preparation:**
-- Study plan creation
-- Test-taking strategies
-- Time management techniques
-
-**Learning Optimization:**
-- Personalized study schedules
-- Productivity tips
-- Goal setting and tracking
-
-What specific area would you like to focus on today? Whether it's understanding a complex topic, planning your career, preparing for exams, or optimizing your learning approach, I'm here to guide you every step of the way.
-
-Feel free to ask me anything - from specific coding problems to broader life advice. Let's make your learning journey both effective and enjoyable! 🚀`;
-      }
-
+      const aiResponse = getMentorReply(prompt);
       setResponse(aiResponse);
       setLoading(false);
-    }, 2000); // 2 second delay for realistic feel
+      speakResponse(aiResponse);
+    }, 1400);
   };
 
   return (
     <div className="mentor-session-page">
-      {/* Hero Section */}
-      <div className="mentor-session-hero">
-        <div className="dashboard-tag">AI Avatar Mentorship</div>
-        <h1>Meet Your AI Mentor</h1>
-        <p className="mentor-session-subtext">
-          Real-time guided help for subjects, exams, and career direction. Experience personalized mentorship powered by advanced AI.
-        </p>
+      <div className="mentor-session-header">
+        <div>
+          <div className="session-badge">Live AI Mentor</div>
+          <h1 className="session-title">Premium AI Avatar Mentorship</h1>
+          <p className="session-subtitle">
+            Experience a real-time mentor session with AI guidance, voice feedback, and a premium study workflow.
+          </p>
+        </div>
+        <div className="session-meta">
+          <span>Route: /mentor-session</span>
+          <span>Instant voice responses</span>
+        </div>
       </div>
 
-      {/* Main Session Layout */}
       <div className="session-layout">
-        {/* Left Panel - Avatar */}
-        <div className="avatar-panel">
-          <div className="avatar-container">
-            <div className="avatar-circle">
-              <div className="avatar-placeholder">
-                <span className="avatar-icon">🤖</span>
+        <section className="mentor-video-panel">
+          <div className="mentor-video-card">
+            <video
+              className="mentor-video"
+              src="/avatar.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+            <div className="video-overlay">
+              <div className="live-badge">
+                <span className="live-dot"></span>
+                Live
               </div>
-              <div className="live-indicator">
-                <div className="live-dot"></div>
-                <span>Live</span>
+              <div className="avatar-details">
+                <h2>AI Mentor</h2>
+                <p>Learning + Career Guide</p>
               </div>
             </div>
+          </div>
 
-            <div className="mentor-info-card">
-              <h2>AI Mentor</h2>
-              <p className="mentor-domain">Learning + Career Guide</p>
-              <div className="status-badge">
-                <span className="status-dot"></span>
-                Online & Available
+          <div className="mentor-summary-card">
+            <h3>Real mentor feel</h3>
+            <p>
+              The avatar section is designed to feel like a live mentor call. Your mentor speaks responses automatically after each message.
+            </p>
+          </div>
+        </section>
+
+        <section className="chat-panel">
+          <div className="chat-card">
+            <div className="chat-header">
+              <div>
+                <h2>Mentor Chat</h2>
+                <p>Type your question and the AI mentor will answer with voice-enabled guidance.</p>
               </div>
+              <span className="status-pill">Active session</span>
             </div>
-          </div>
-        </div>
 
-        {/* Right Panel - Chat Interface */}
-        <div className="chat-panel">
-          <div className="session-goal-section">
-            <label htmlFor="session-goal">Session Goal (Optional)</label>
-            <input
-              id="session-goal"
-              type="text"
-              placeholder="e.g., Prepare for data structures interview"
-              value={sessionGoal}
-              onChange={(e) => setSessionGoal(e.target.value)}
-            />
-          </div>
+            <div className="session-goal-section">
+              <label htmlFor="session-goal">Session Goal (Optional)</label>
+              <input
+                id="session-goal"
+                type="text"
+                placeholder="e.g., Build interview readiness in 4 weeks"
+                value={sessionGoal}
+                onChange={(e) => setSessionGoal(e.target.value)}
+              />
+            </div>
 
-          <div className="message-section">
-            <label htmlFor="message">Your Message</label>
-            <textarea
-              id="message"
-              placeholder="Ask me anything about learning, career, or exams..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={4}
-            />
-            <button
-              className="send-btn"
-              onClick={handleSendMessage}
-              disabled={!message.trim() || loading}
-            >
-              {loading ? 'Sending...' : 'Send Message'}
-            </button>
-          </div>
+            <div className="message-section">
+              <label htmlFor="message">Your Message</label>
+              <textarea
+                id="message"
+                placeholder="Ask me about binary search, career planning, exam prep, or a study plan..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={5}
+              />
+              <button
+                className="send-btn"
+                onClick={handleSendMessage}
+                disabled={!message.trim() || loading}
+              >
+                {loading ? 'Thinking...' : 'Send Message'}
+              </button>
+            </div>
 
-          <div className="response-section">
-            {loading && (
-              <div className="loading-response">
-                <div className="loading-spinner"></div>
-                <p>AI Mentor is thinking...</p>
-              </div>
-            )}
+            <div className="response-card">
+              {loading && (
+                <div className="loading-response">
+                  <div className="loading-spinner" />
+                  <p>AI Mentor is thinking...</p>
+                </div>
+              )}
 
-            {response && !loading && (
-              <div className="mentor-response">
-                <div className="response-header">
-                  <div className="mentor-avatar-small">
-                    <span className="avatar-icon-small">🤖</span>
+              {!loading && response && (
+                <div className="response-content-wrap">
+                  <div className="response-header">
+                    <div className="mentor-avatar-small">
+                      <span className="avatar-icon-small">🤖</span>
+                    </div>
+                    <div>
+                      <div className="mentor-label">AI Mentor</div>
+                      <p className="response-subtitle">Speaking response now</p>
+                    </div>
                   </div>
-                  <div className="mentor-label">AI Mentor</div>
+                  <div className="response-content">
+                    {response.split('\n').map((line, index) => (
+                      <p key={index}>{line}</p>
+                    ))}
+                  </div>
                 </div>
-                <div className="response-content">
-                  {response}
+              )}
+
+              {!loading && !response && (
+                <div className="response-placeholder">
+                  <p>Send a message to begin your live AI mentor session.</p>
                 </div>
-              </div>
-            )}
-
-            {!response && !loading && (
-              <div className="response-placeholder">
-                <p>Your conversation with the AI Mentor will appear here. Start by sending a message above!</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Future Vision Section */}
-      <div className="future-vision-section">
-        <div className="vision-card">
-          <div className="vision-icon">🚀</div>
-          <h3>Future of AI Mentorship</h3>
-          <p>We're just getting started. Here's what's coming next:</p>
-
-          <div className="vision-features">
-            <div className="vision-feature">
-              <div className="feature-icon">🎭</div>
-              <h4>Real Avatars</h4>
-              <p>Interactive 3D avatars that respond with natural expressions and gestures</p>
-            </div>
-
-            <div className="vision-feature">
-              <div className="feature-icon">👥</div>
-              <h4>Human Mentors</h4>
-              <p>Connect with experienced professionals for personalized guidance</p>
-            </div>
-
-            <div className="vision-feature">
-              <div className="feature-icon">🎯</div>
-              <h4>Advanced Analytics</h4>
-              <p>Detailed progress tracking and personalized learning recommendations</p>
-            </div>
-
-            <div className="vision-feature">
-              <div className="feature-icon">🌐</div>
-              <h4>Multi-Language</h4>
-              <p>Support for multiple languages and cultural contexts</p>
+              )}
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
