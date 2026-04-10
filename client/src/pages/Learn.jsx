@@ -44,13 +44,12 @@ export default function Learn() {
         body: JSON.stringify({ topic: topic.trim(), mode }),
       });
 
+      const data = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
+        throw new Error(data?.error || `Server error: ${response.status}`);
       }
 
-      const data = await response.json();
-
-      if (data.error) {
+      if (data?.error) {
         setError(data.error);
       } else {
         setAnswer(data.answer || 'No answer received');

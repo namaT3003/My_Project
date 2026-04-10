@@ -10,11 +10,13 @@ export default function Practice() {
   const [finished, setFinished] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const startQuiz = async () => {
     if (!topic.trim()) return;
 
     setLoading(true);
+    setError("");
     setStarted(false);
     setFinished(false);
     setCurrent(0);
@@ -23,7 +25,7 @@ export default function Practice() {
     setQuestions([]);
 
     try {
-      const response = await fetch("http://localhost:5001/api/quiz", {
+      const response = await fetch("/api/quiz", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -31,10 +33,14 @@ export default function Practice() {
         body: JSON.stringify({ topic, difficulty })
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || `Server error: ${response.status}`);
+      }
 
-      if (response.ok && data.questions && data.questions.length > 0) {
-        const processedQuestions = data.questions.map((q) => ({
+      const quizData = data.questions || data.quiz || [];
+      if (quizData.length > 0) {
+        const processedQuestions = quizData.map((q) => ({
           ...q,
           answer:
             typeof q.answer === "string" ? q.options.indexOf(q.answer) : q.answer
@@ -43,10 +49,10 @@ export default function Practice() {
         setQuestions(processedQuestions);
         setStarted(true);
       } else {
-        alert("Quiz load nahi hua.");
+        throw new Error("AI returned no quiz questions. Try again.");
       }
-    } catch (error) {
-      alert("Server se connect nahi ho paya.");
+    } catch (err) {
+      setError(err.message || "Server se connect nahi ho paya.");
     } finally {
       setLoading(false);
     }
@@ -97,6 +103,7 @@ export default function Practice() {
               <p className="learn-placeholder">Loading quiz questions...</p>
             ) : (
               <div className="practice-controls">
+                {error && <div className="error-message">{error}</div>}
                 <input
                   type="text"
                   value={topic}

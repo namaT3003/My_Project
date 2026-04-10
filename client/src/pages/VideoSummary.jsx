@@ -4,8 +4,23 @@ export default function VideoSummary() {
   const [videoLink, setVideoLink] = useState('');
   const [summaryType, setSummaryType] = useState('short');
   const [summary, setSummary] = useState('');
+  const [summaryInfo, setSummaryInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const validateVideoLink = (link) => {
+    try {
+      const url = new URL(link.trim());
+      return [
+        'youtube.com',
+        'youtu.be',
+        'www.youtube.com',
+        'm.youtube.com',
+      ].some((host) => url.hostname.includes(host));
+    } catch {
+      return false;
+    }
+  };
 
   const handleSummary = async (e) => {
     e.preventDefault();
@@ -15,9 +30,15 @@ export default function VideoSummary() {
       return;
     }
 
+    if (!validateVideoLink(videoLink)) {
+      setError('Please enter a valid YouTube video link');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSummary('');
+    setSummaryInfo(null);
 
     try {
       const response = await fetch('/api/video-summary', {
@@ -26,22 +47,28 @@ export default function VideoSummary() {
         body: JSON.stringify({ videoLink: videoLink.trim(), summaryType }),
       });
 
+      const data = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
+        throw new Error(data?.error || `Server error: ${response.status}`);
       }
 
-      const data = await response.json();
-
-      if (data.error) {
+      if (data?.error) {
         setError(data.error);
       } else {
         setSummary(data.summary || 'No summary received');
+        setSummaryInfo({ videoLink: videoLink.trim(), summaryType });
       }
     } catch (err) {
-      setError('❌ Failed to fetch summary');
+      setError(err.message || '❌ Failed to fetch summary');
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (summary) {
+      navigator.clipboard.writeText(summary);
     }
   };
 
@@ -120,8 +147,28 @@ export default function VideoSummary() {
                 <p>Generating summary...</p>
               </div>
             </div>
+          ) : error ? (
+            <div className="video-summary-error">{error}</div>
           ) : summary ? (
-            <div className="video-summary-answer">{summary}</div>
+            <>
+              {summaryInfo && (
+                <div className="video-summary-meta">
+                  <span>Type: <strong>{summaryInfo.summaryType}</strong></span>
+                  <span>Link: <strong>{summaryInfo.videoLink}</strong></span>
+                </div>
+              )}
+              <div className="video-summary-prompt-box">
+                <div className="video-summary-prompt-label">Prompt Result</div>
+                <div className="video-summary-answer">{summary}</div>
+              </div>
+              <button
+                className="secondary-btn copy-btn"
+                type="button"
+                onClick={handleCopy}
+              >
+                Copy Summary
+              </button>
+            </>
           ) : (
             <div className="video-summary-placeholder">
               Paste a video link and click &quot;Summarize Video&quot; to see the result.
