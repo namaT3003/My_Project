@@ -1,4 +1,5 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const getMentorReply = (message) => {
   const lowerMessage = message.toLowerCase();
@@ -71,13 +72,73 @@ export default function MentorSession() {
   const [message, setMessage] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [speechError, setSpeechError] = useState('');
+  const [user, setUser] = useState(null);
+  const [recognition, setRecognition] = useState(null);
+  const navigate = useNavigate();
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognizer = new SpeechRecognition();
+      recognizer.lang = 'en-US';
+      recognizer.continuous = false;
+      recognizer.interimResults = false;
+
+      recognizer.onresult = (event) => {
+        const transcript = event.results?.[0]?.[0]?.transcript || '';
+        if (!transcript) {
+          setSpeechError('Could not recognize speech. Try again.');
+          setListening(false);
+          return;
+        }
+        setSpeechError('');
+        setMessage(transcript);
+        setListening(false);
+        setTimeout(() => {
+          handleSendMessage(transcript);
+        }, 500);
+      };
+
+      recognizer.onerror = () => {
+        setSpeechError('Speech recognition failed. Please try again.');
+        setListening(false);
+      };
+
+      recognizer.onend = () => {
+        setListening(false);
+      };
+
+      setRecognition(recognizer);
+    }
+  }, []);
+
+  useEffect(() => {
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || 'null');
+    if (!loggedInUser) {
+      navigate('/login');
+      return;
+    }
+
+    // Check if user has access to mentor session
+    // Premium users or users with streak >= 5 can access
+    if (!loggedInUser.isPremium && loggedInUser.streak < 5) {
+      alert('Mentor sessions require either Premium status or a 5+ day study streak. Keep learning to unlock this feature!');
+      navigate('/dashboard');
+      return;
+    }
+
+    setUser(loggedInUser);
+  }, [navigate]);
+
+  const handleSendMessage = (overridePrompt) => {
+    const promptText = typeof overridePrompt === 'string' ? overridePrompt : message;
+    const prompt = promptText?.trim() || '';
+    if (!prompt) return;
 
     setLoading(true);
     setResponse('');
-    const prompt = message.trim();
     setMessage('');
 
     if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -92,6 +153,25 @@ export default function MentorSession() {
     }, 1400);
   };
 
+  const handleMicClick = () => {
+    if (!recognition) {
+      setSpeechError('Speech recognition is not supported in this browser.');
+      return;
+    }
+
+    if (listening) {
+      recognition.stop();
+      setListening(false);
+      return;
+    }
+
+    setSpeechError('');
+    setListening(true);
+    recognition.start();
+  };
+
+  if (!user) return null;
+
   return (
     <div className="mentor-session-page">
       <div className="mentor-session-header">
@@ -99,7 +179,7 @@ export default function MentorSession() {
           <div className="session-badge">Live AI Mentor</div>
           <h1 className="session-title">Premium AI Avatar Mentorship</h1>
           <p className="session-subtitle">
-            Experience a real-time mentor session with AI guidance, voice feedback, and a premium study workflow.
+            {user ? `Welcome back, ${user.name}! Experience a real-time mentor session with AI guidance, voice feedback, and a premium study workflow.` : 'Experience a real-time mentor session with AI guidance, voice feedback, and a premium study workflow.'}
           </p>
         </div>
         <div className="session-meta">
@@ -110,25 +190,32 @@ export default function MentorSession() {
 
       <div className="session-layout">
         <section className="mentor-video-panel">
-          <div className="mentor-video-card">
-            <video
-              className="mentor-video"
-              src="/avatar.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-            <div className="video-overlay">
-              <div className="live-badge">
-                <span className="live-dot"></span>
-                Live
-              </div>
-              <div className="avatar-details">
-                <h2>AI Mentor</h2>
-                <p>Learning + Career Guide</p>
-              </div>
+          <div className="mentor-avatar-card">
+            <div className="avatar-glow">
+              <div className="mentor-avatar-circle">🤖</div>
             </div>
+            <div className="live-indicator">
+              <span className="live-dot"></span>
+              Live AI Mentor
+            </div>
+            <div className="avatar-details">
+              <h2>AI Mentor</h2>
+              <p>Learning + Career Guide</p>
+            </div>
+          </div>
+
+          <div className="mentor-avatar-actions">
+            <button
+              type="button"
+              className={`mic-button ${listening ? 'active' : ''}`}
+              onClick={handleMicClick}
+            >
+              <span className="mic-icon">🎙️</span>
+            </button>
+            <div className="mic-status">
+              {listening ? 'Listening...' : 'Tap the mic to speak'}
+            </div>
+            {speechError && <p className="speech-error">{speechError}</p>}
           </div>
 
           <div className="mentor-summary-card">
@@ -171,7 +258,7 @@ export default function MentorSession() {
               />
               <button
                 className="send-btn"
-                onClick={handleSendMessage}
+                onClick={() => handleSendMessage()}
                 disabled={!message.trim() || loading}
               >
                 {loading ? 'Thinking...' : 'Send Message'}

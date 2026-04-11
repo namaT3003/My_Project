@@ -1,37 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-
-const roleData = {
-  student: {
-    icon: '👤',
-    label: 'Student',
-    title: 'Student Portal',
-    color: '#3b82f6',
-    desc: 'Continue learning with personalized courses and progress tracking.',
-    features: ['📚 Access courses', '🎯 Track progress', '🏆 Earn certificates']
-  },
-  mentor: {
-    icon: '🎯',
-    label: 'Mentor',
-    title: 'Mentor Zone',
-    color: '#f59e0b',
-    desc: 'Manage your courses, students, and mentorship dashboard.',
-    features: ['📚 Create courses', '👥 Help students', '💵 Grow earnings']
-  },
-  admin: {
-    icon: '⚙️',
-    label: 'Admin',
-    title: 'Admin Panel',
-    color: '#ef4444',
-    desc: 'Manage the platform, users, and content with control.',
-    features: ['👥 Manage users', '📊 View reports', '🔧 Control settings']
-  }
-};
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  const [selectedRole, setSelectedRole] = useState('student');
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const role = roleData[selectedRole];
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,58 +13,37 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Login data:', { ...formData, role: selectedRole });
+    setError('');
+
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+    if (user && user.email === formData.email && user.password === formData.password) {
+      localStorage.setItem('loggedInUser', JSON.stringify(user));
+      navigate('/dashboard');
+      return;
+    }
+
+    setError('Invalid email or password. Please try again.');
   };
 
   return (
     <div className="auth-page">
       <div className="auth-wrapper">
-        <div
-          className="auth-brand-panel"
-          style={{ background: `linear-gradient(135deg, ${role.color}15 0%, rgba(10, 14, 39, 0.95) 100%)` }}
-        >
-          <div className="auth-brand-badge" style={{ color: role.color, borderColor: role.color }}>
-            {role.icon} Bridge Skill
-          </div>
-          
-          <h2 style={{ color: role.color }}>{role.title}</h2>
-          <p>{role.desc}</p>
-
-          <div className="auth-features">
-            {role.features.map((feature) => (
-              <div key={feature} className="feature-item" style={{ borderColor: `${role.color}30` }}>
-                {feature}
-              </div>
-            ))}
-          </div>
-
-          <div className="role-selection">
-            <p>Choose Your Role</p>
-            <div className="role-buttons">
-              {Object.entries(roleData).map(([key, item]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`role-btn ${selectedRole === key ? 'active' : ''}`}
-                  style={{ 
-                    '--role-color': item.color,
-                    borderColor: selectedRole === key ? item.color : 'rgba(255, 255, 255, 0.12)',
-                    background: selectedRole === key ? `${item.color}20` : 'rgba(255, 255, 255, 0.05)',
-                    color: selectedRole === key ? '#ffffff' : '#e2e8f0'
-                  }}
-                  onClick={() => setSelectedRole(key)}
-                >
-                  <span style={{ fontSize: '20px', marginRight: '8px' }}>{item.icon}</span>
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="auth-brand-panel">
+          <div className="auth-brand-badge">🚀 SkillMentor</div>
+          <h2>Welcome Back</h2>
+          <p>Sign in to continue your learning journey.</p>
         </div>
 
         <div className="auth-form-card">
-          <h1>Welcome Back</h1>
-          <p className="auth-subtext">Sign in to continue as a <span style={{ color: role.color, fontWeight: '600' }}>{role.label.toLowerCase()}</span></p>
+          <h1>Sign In</h1>
+          <p className="auth-subtext">Enter your credentials to access your account</p>
+
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="form-group">
@@ -118,20 +70,13 @@ export default function Login() {
               />
             </div>
 
-            <button
-              type="submit"
-              className="primary-btn full-width"
-              style={{ 
-                background: `linear-gradient(135deg, ${role.color} 0%, ${role.color}dd 100%)`,
-                boxShadow: `0 8px 20px ${role.color}40`
-              }}
-            >
-              Sign In as {role.label}
+            <button type="submit" className="primary-btn full-width">
+              Sign In
             </button>
           </form>
 
           <div className="auth-switch">
-            Don't have an account? <Link to="/signup">Create one</Link>
+            Don't have an account? <a href="/signup">Create one</a>
           </div>
         </div>
       </div>

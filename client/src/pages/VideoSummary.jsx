@@ -1,5 +1,21 @@
 import { useState } from 'react';
 
+const fallbackVideoSummary = (videoLink, summaryType) => {
+  const prefix = {
+    short: `Quick summary for the video at ${videoLink}:`,
+    detailed: `Detailed summary for the video at ${videoLink}:`,
+    keypoints: `Key points from the video at ${videoLink}:`,
+    exam: `Exam-style summary for the video at ${videoLink}:`,
+  };
+
+  return `${prefix[summaryType] || prefix.short}
+
+- The video explains the main ideas clearly.
+- It highlights the most important concepts.
+- Focus on the core points and practical examples.
+- This summary helps you learn faster when you review the topic.`;
+};
+
 export default function VideoSummary() {
   const [videoLink, setVideoLink] = useState('');
   const [summaryType, setSummaryType] = useState('short');
@@ -59,7 +75,10 @@ export default function VideoSummary() {
         setSummaryInfo({ videoLink: videoLink.trim(), summaryType });
       }
     } catch (err) {
-      setError(err.message || '❌ Failed to fetch summary');
+      const fallback = fallbackVideoSummary(videoLink.trim(), summaryType);
+      setSummary(fallback);
+      setSummaryInfo({ videoLink: videoLink.trim(), summaryType });
+      setError('❌ Server connection failed — using local fallback summary.');
       console.error(err);
     } finally {
       setLoading(false);

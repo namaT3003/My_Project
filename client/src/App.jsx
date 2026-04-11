@@ -5,10 +5,10 @@ import Dashboard from "./pages/Dashboard";
 import Learn from "./pages/Learn";
 import Practice from "./pages/Practice";
 import VideoSummary from "./pages/VideoSummary";
-import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import MentorSession from "./pages/MentorSession";
+import Contact from "./pages/Contact";
 
 function App() {
   return (
@@ -20,10 +20,10 @@ function App() {
         <Route path="/learn" element={<Learn />} />
         <Route path="/practice" element={<Practice />} />
         <Route path="/video-summary" element={<VideoSummary />} />
-        <Route path="/profile" element={<Profile />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/mentor-session" element={<MentorSession />} />
+        <Route path="/contact" element={<Contact />} />
       </Routes>
     </BrowserRouter>
   );

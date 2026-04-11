@@ -14,8 +14,8 @@ function Navbar() {
           <Link to="/learn">Learn</Link>
           <Link to="/practice">Practice</Link>
           <Link to="/video-summary">Video Summary</Link>
-          <Link to="/profile">Profile</Link>
           <Link to="/mentor-session">Mentor Session</Link>
+          <Link to="/contact">Contact</Link>
         </div>
 
         <div className="nav-actions">

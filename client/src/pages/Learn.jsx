@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
 
+const fallbackExplain = (topic, mode) => {
+  const base = {
+    friendly: `Let's break down ${topic} in a friendly and easy way. Imagine it step-by-step, with clear examples and a simple explanation so you can understand it fast.`,
+    beginner: `Here's ${topic} explained in beginner-friendly terms. Think of it as the simplest version of the idea, using easy language and practical examples.`,
+    strict: `${topic} is explained in a technical and accurate way, focusing on the key principles and structure behind the concept.`,
+    exam: `This is an exam-style summary of ${topic}. It highlights definitions, important points, and quick revision notes for study purposes.`,
+  };
+  return base[mode] || base.friendly;
+};
+
 export default function Learn() {
   const [topic, setTopic] = useState('');
   const [mode, setMode] = useState('friendly');
@@ -55,7 +65,9 @@ export default function Learn() {
         setAnswer(data.answer || 'No answer received');
       }
     } catch (err) {
-      setError('❌ Server connection failed');
+      const fallback = fallbackExplain(topic.trim(), mode);
+      setAnswer(fallback);
+      setError('❌ Server connection failed — using local fallback content.');
       console.error(err);
     } finally {
       setLoading(false);

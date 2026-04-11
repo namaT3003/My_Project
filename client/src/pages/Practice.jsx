@@ -1,5 +1,60 @@
 import { useState } from "react";
 
+const fallbackQuiz = (topic, difficulty) => {
+  return [
+    {
+      question: `What is the main purpose of ${topic}?`,
+      options: [
+        `To explain the core idea of ${topic}`,
+        `To provide irrelevant information`,
+        `To make the topic more confusing`,
+        `To ignore the key details`,
+      ],
+      answer: `To explain the core idea of ${topic}`,
+    },
+    {
+      question: `Which statement best describes ${topic}?`,
+      options: [
+        `It is a foundational concept with practical use`,
+        `It is only historical trivia`,
+        `It has no real world meaning`,
+        `It is always extremely simple`,
+      ],
+      answer: `It is a foundational concept with practical use`,
+    },
+    {
+      question: `How should you study ${topic}?`,
+      options: [
+        `By reviewing examples and practicing problems`,
+        `By memorizing unrelated facts`,
+        `By guessing answers randomly`,
+        `By avoiding the topic completely`,
+      ],
+      answer: `By reviewing examples and practicing problems`,
+    },
+    {
+      question: `What is a good way to remember ${topic}?`,
+      options: [
+        `Focus on the main ideas and practice regularly`,
+        `Only read the first sentence`,
+        `Forget about it after one read`,
+        `Only memorize technical terms`,
+      ],
+      answer: `Focus on the main ideas and practice regularly`,
+    },
+    {
+      question: `Why is ${topic} important?`,
+      options: [
+        `Because it helps solve common problems and understand the field`,
+        `Because it looks nice on paper`,
+        `Because it is always easy`,
+        `Because it never changes`,
+      ],
+      answer: `Because it helps solve common problems and understand the field`,
+    },
+  ].map((question) => ({ ...question, difficulty: difficulty || "medium" }));
+};
+
 export default function Practice() {
   const [topic, setTopic] = useState("Binary Search");
   const [difficulty, setDifficulty] = useState("easy");
@@ -52,7 +107,11 @@ export default function Practice() {
         throw new Error("AI returned no quiz questions. Try again.");
       }
     } catch (err) {
-      setError(err.message || "Server se connect nahi ho paya.");
+      const fallback = fallbackQuiz(topic.trim(), difficulty);
+      setQuestions(fallback);
+      setStarted(true);
+      setError("Server connection failed — using local fallback questions.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
